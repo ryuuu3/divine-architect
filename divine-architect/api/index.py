@@ -1,37 +1,30 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
-import os
-import urllib.parse
-import re
+import os, urllib.parse, json, random, requests, base64
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 SYSTEM_PROMPT = """Anda adalah Divine Architect Agent, spesialis pembuatan karakter dewa-dewi bergaya Manhwa/Novel High-Fantasy.
 
-Dari konsep yang diberikan, hasilkan OUTPUT dalam format JSON PERSIS seperti ini (tanpa teks lain):
+Hasilkan OUTPUT JSON seperti ini (langsung JSON, tanpa teks lain):
 {
-  "nama": "Nama Dewa",
+  "nama": "Nama Dewa Lengkap",
   "domain": "Domain1, Domain2, Domain3",
   "power_level": "BEYOND CONCEPT",
-  "lore": "Paragraf lore puitis dalam Bahasa Indonesia. 3-4 paragraf, pisahkan dengan \\n\\n",
-  "quote": "Kutipan ikonik sang dewa dalam Bahasa Indonesia",
+  "lore": "3-4 paragraf puitis Bahasa Indonesia, pisah dengan \\n\\n",
+  "quote": "Satu kutipan ikonik Bahasa Indonesia",
   "abilities": [
-    {"name": "Ability Name", "desc": "Deskripsi singkat dalam Bahasa Indonesia"},
-    {"name": "Ability Name", "desc": "Deskripsi singkat"},
-    {"name": "Ability Name", "desc": "Deskripsi singkat"},
-    {"name": "Ability Name", "desc": "Deskripsi singkat"},
-    {"name": "Ability Name", "desc": "Deskripsi singkat"}
+    {"name": "Nama Ability", "desc": "Deskripsi singkat"},
+    {"name": "Nama Ability", "desc": "Deskripsi singkat"},
+    {"name": "Nama Ability", "desc": "Deskripsi singkat"},
+    {"name": "Nama Ability", "desc": "Deskripsi singkat"},
+    {"name": "Nama Ability", "desc": "Deskripsi singkat"}
   ],
-  "image_prompt": "detailed english prompt for stable diffusion: character appearance, cosmic elements, manhwa style, masterpiece, ethereal glow, cosmic background, 8k, highly detailed, intricate attire, multiple glowing eyes, celestial chains, floating halos, black hole chest core",
-  "negative_prompt": "lowres, bad anatomy, blurry, watermark, signature, ugly, deformed, bad proportions"
+  "image_prompt": "1 male/female god, [deskripsikan: warna rambut, warna mata, kostum detail, pose, elemen unik seperti multiple eyes/black hole chest/celestial chains/floating halos], cosmic nebula background, divine light rays, manhwa style, anime illustration, masterpiece, best quality, ultra detailed, 8k, sharp focus, perfect anatomy, beautiful face, glowing ethereal aura",
+  "negative_prompt": "lowres, bad anatomy, blurry, ugly, deformed, extra limbs, missing fingers, worst quality, realistic photo, 3d render, watermark, text"
 }"""
 
 class GenerateRequest(BaseModel):
@@ -44,35 +37,69 @@ async def health():
 
 @app.post("/api/generate")
 async def generate(req: GenerateRequest):
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured")
+    groq_key = os.environ.get("GROQ_API_KEY")
+    hf_token = os.environ.get("HF_TOKEN")
+    if not groq_key:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not set")
 
     try:
         from groq import Groq
-        client = Groq(api_key=api_key)
-
+        client = Groq(api_key=groq_key)
         completion = client.chat.completions.create(
             model=req.model,
             max_tokens=2000,
+            temperature=0.9,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Buat karakter dewa dengan konsep: {req.concept}"}
+                {"role": "user", "content": f"Buat karakter dewa: {req.concept}"}
             ],
             response_format={"type": "json_object"}
         )
+        data = json.loads(completion.choices[0].message.content)
 
-        import json
-        raw = completion.choices[0].message.content
-        data = json.loads(raw)
-
-        # Build Pollinations image URL
         img_prompt = data.get("image_prompt", req.concept)
-        encoded_prompt = urllib.parse.quote(img_prompt)
-        image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&enhance=true&model=flux"
+        neg_prompt = data.get("negative_prompt", "lowres, bad anatomy, blurry")
 
-        data["image_url"] = image_url
-        return data
+        # Coba Hugging Face dulu (kualitas lebih bagus)
+        if hf_token:
+            try:
+                hf_url = "https://api-inference.huggingface.co/models/cagliostrolab/animagine-xl-3.1"
+                hf_res = requests.post(
+                    hf_url,
+                    headers={"Authorization": f"Bearer {hf_token}"},
+                    json={
+                        "inputs": img_prompt + ", masterpiece, best quality, ultra detailed, sharp focus",
+                        "parameters": {
+                            "negative_prompt": neg_prompt,
+                            "width": 832,
+                            "height": 1216,
+                            "num_inference_steps": 28,
+                            "guidance_scale": 7,
+                            "seed": random.randint(1, 999999)
+                        }
+                    },
+                    timeout=60
+                )
+                if hf_res.status_code == 200 and hf_res.headers.get("content-type","").startswith("image"):
+                    img_b64 = base64.b64encode(hf_res.content).decode()
+                    data["image_url"] = f"data:image/jpeg;base64,{img_b64}"
+                    data["image_source"] = "animagine-xl"
+                    return JSONResponse(content=data)
+            except Exception:
+                pass  # Fallback ke Pollinations
 
+        # Fallback: Pollinations
+        seed = random.randint(1, 999999)
+        encoded = urllib.parse.quote(img_prompt + ", manhwa illustration, masterpiece, best quality, 8k")
+        encoded_neg = urllib.parse.quote(neg_prompt)
+        data["image_url"] = (
+            f"https://image.pollinations.ai/prompt/{encoded}"
+            f"?width=832&height=1216&model=flux&seed={seed}&nologo=true&enhance=true&negative={encoded_neg}"
+        )
+        data["image_source"] = "pollinations"
+        return JSONResponse(content=data)
+
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"JSON parse error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
