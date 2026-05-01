@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Divine Architect — Awaken Gods Beyond Mortal Imagination</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-dim: rgba(201,168,76,0.35);
+  --gold-glow: rgba(201,168,76,0.15);
+  --purple: #7c3aed;
+  --purple-bright: #a855f7;
+  --purple-dim: rgba(124,58,237,0.3);
+  --bg: #080810;
+  --bg2: #0d0d1a;
+  --bg3: #111127;
+  --text: #e8e0d0;
+  --text-dim: rgba(232,224,208,0.55);
+  --border: rgba(201,168,76,0.18);
+  --border-bright: rgba(201,168,76,0.45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Crimson Pro', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ── CANVAS STARS ── */
+#starCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+/* ── LAYOUT ── */
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,8,16,0.85);
+  backdrop-filter: blur(12px);
+}
+
+.topbar-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-bright);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+}
+
+.topbar-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--purple-bright);
+  box-shadow: 0 0 8px var(--purple-bright);
+  animation: blink 2s infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  padding: 10px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 6px;
+  text-shadow: 0 0 60px rgba(201,168,76,0.5), 0 0 120px rgba(201,168,76,0.2);
+  line-height: 1.15;
+}
+
+.header-tagline {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 5px;
+  color: var(--text-dim);
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+/* ── INPUT ROW ── */
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: stretch;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,20,0.6);
+}
+
+.input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.god-input {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Crimson Pro', serif;
+  font-size: 16px;
+  padding: 12px 16px;
+  outline: none;
+  width: 100%;
+  transition: border .2s, box-shadow .2s;
+}
+
+.god-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(201,168,76,0.15);
+}
+
+.god-input::placeholder { color: rgba(200,180,140,0.35); font-style: italic; }
+
+.awaken-btn {
+  padding: 0 32px;
+  background: linear-gradient(135deg, #4c1d95, #7c3aed, #4c1d95);
+  border: 1px solid rgba(168,85,247,0.5);
+  border-radius: 8px;
+  color: #f0e8ff;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all .25s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-end;
+  height: 48px;
+}
+
+.awaken-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5b21b6, #9333ea, #5b21b6);
+  box-shadow: 0 4px 30px rgba(139,92,246,0.45);
+  transform: translateY(-1px);
+}
+
+.awaken-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+.awaken-btn svg { width: 16px; height: 16px; }
+
+/* STATUS PANEL */
+.status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: flex-end;
+  align-self: flex-end;
+  min-width: 180px;
+}
+
+.status-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.status-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: #4ade80;
+  letter-spacing: 1px;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+  animation: blink 2s infinite;
+}
+
+.status-msg {
+  font-family: 'Crimson Pro', serif;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  flex: 1;
+  padding: 20px 28px;
+  gap: 20px;
+}
+
+/* ── PORTRAIT PANEL ── */
+.portrait-panel {
+  background: rgba(10,8,22,0.7);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.panel-header::before, .panel-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-dim));
+}
+.panel-header::after { background: linear-gradient(to left, transparent, var(--gold-dim)); }
+
+.portrait-body {
+  flex: 1;
+  position: relative;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portrait-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-dim);
+  padding: 40px;
+  text-align: center;
+}
+
+.portrait-placeholder .icon-ring {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1px solid var(--border-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+.portrait-placeholder p {
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(200,175,130,0.4);
+}
+
+.god-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+
+.portrait-footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.footer-stat { display: flex; flex-direction: column; gap: 2px; }
+.footer-stat-label {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.footer-stat-value {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+
+/* ── PROFILE PANEL ── */
+.profile-panel {
+  background: rgba(10,8,22,0.7);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-body {
+  flex: 1;
+  padding: 22px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.god-name {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.name-star {
+  width: 32px; height: 32px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.domain-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+.domain-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.domain-value {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* LORE */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.lore-text {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.god-quote {
+  font-style: italic;
+  font-size: 16px;
+  color: var(--purple-bright);
+  line-height: 1.7;
+  padding: 4px 0;
+}
+
+/* ABILITIES */
+.abilities-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.ability-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.ability-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-bright);
+  background: var(--purple-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.ability-name {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.ability-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* POWER LEVEL */
+.power-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.power-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.power-value {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  color: var(--purple-bright);
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(168,85,247,0.6);
+}
+
+.power-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(168,85,247,0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.power-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--purple), var(--purple-bright));
+  border-radius: 2px;
+  width: 0%;
+  transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px rgba(168,85,247,0.5);
+}
+
+/* ── FOOTER ── */
+.footer-bar {
+  border-top: 1px solid var(--border);
+  padding: 14px 28px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+}
+
+/* ── PLACEHOLDER STATE ── */
+.placeholder-profile {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 15px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── LOADING STATE ── */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8,8,16,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 10;
+  border-radius: 12px;
+}
+
+.loading-overlay.show { display: flex; }
+
+.loading-ring {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* ── ERROR TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(15,5,5,0.95);
+  border: 1px solid rgba(220,80,80,0.4);
+  border-radius: 8px;
+  padding: 14px 20px;
+  color: #f87171;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  z-index: 100;
+  display: none;
+  max-width: 360px;
+  animation: slideup .3s ease;
+}
+
+.toast.show { display: block; }
+@keyframes slideup { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; }
+  .input-row { grid-template-columns: 1fr; }
+  .awaken-btn { width: 100%; justify-content: center; }
+  .abilities-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── ABILITY ICONS MAPPING ── */
+.ai-0::before { content: '◎'; }
+.ai-1::before { content: '⊗'; }
+.ai-2::before { content: '✦'; }
+.ai-3::before { content: '◈'; }
+.ai-4::before { content: '⟁'; }
+
+/* Image loading shimmer */
+.img-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.05) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  display: none;
+}
+
+.img-shimmer.show { display: block; }
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+</style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+
+<div class="page">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-badge">
+      <div class="dot"></div>
+      AI Agent System
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;color:rgba(201,168,76,0.45);letter-spacing:2px;">
+      DIVINE ARCHITECT v1.0
+    </div>
+    <div class="topbar-badge" style="cursor:pointer;" onclick="showAbout()">
+      <span>ⓘ</span> About System
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-title">Divine Architect</div>
+    <div class="header-tagline">— Awaken Gods Beyond Mortal Imagination —</div>
+  </div>
+
+  <!-- INPUT ROW -->
+  <div class="input-row">
+    <div class="input-wrap">
+      <span class="input-label">Describe Your God</span>
+      <input class="god-input" id="conceptInput"
+        placeholder="Contoh: God of the Void, ruler of stars, eternal and unseen..."
+        onkeydown="if(event.key==='Enter')awaken()"/>
+    </div>
+
+    <button class="awaken-btn" id="awakenBtn" onclick="awaken()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+      </svg>
+      Awaken God
+    </button>
+
+    <div class="status-panel">
+      <span class="status-label">System Status</span>
+      <div class="status-value">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">ONLINE</span>
+      </div>
+      <div class="status-msg" id="statusMsg">Divine Architect AI is ready.</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- PORTRAIT PANEL -->
+    <div class="portrait-panel">
+      <div class="panel-header">Divine Portrait</div>
+
+      <div class="portrait-body" id="portraitBody">
+        <div class="portrait-placeholder" id="portraitPlaceholder">
+          <div class="icon-ring">✦</div>
+          <p>Awaiting the god's manifestation...<br/>Enter a concept above to begin.</p>
+        </div>
+        <div class="img-shimmer" id="imgShimmer"></div>
+        <img class="god-image" id="godImage" alt="Divine Portrait"/>
+        <div class="loading-overlay" id="portraitLoading">
+          <div class="loading-ring"></div>
+          <div class="loading-text">MANIFESTING...</div>
+        </div>
+      </div>
+
+      <div class="portrait-footer">
+        <div class="footer-stat">
+          <span class="footer-stat-label">Generated By</span>
+          <span class="footer-stat-value" style="font-size:9px;">Divine Architect AI</span>
+        </div>
+        <div class="footer-stat">
+          <span class="footer-stat-label">Style</span>
+          <span class="footer-stat-value" style="font-size:9px;">Manhwa / High Fantasy</span>
+        </div>
+        <div class="footer-stat">
+          <span class="footer-stat-label">Resolution</span>
+          <span class="footer-stat-value" style="font-size:9px;">8K Ultra HD</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE PANEL -->
+    <div class="profile-panel" style="position:relative;">
+      <div class="panel-header">Divine Profile</div>
+
+      <div class="placeholder-profile" id="profilePlaceholder">
+        <div style="font-size:32px;opacity:0.2;">✦</div>
+        <p>The divine profile will appear here once the god awakens.</p>
+      </div>
+
+      <div class="profile-body" id="profileBody" style="display:none;">
+
+        <div>
+          <div class="god-name" id="godName">
+            —
+            <svg class="name-star" viewBox="0 0 32 32" fill="none">
+              <path d="M16 2L19.5 12.5H30.5L21.5 19L25 29.5L16 23L7 29.5L10.5 19L1.5 12.5H12.5L16 2Z"
+                stroke="rgba(201,168,76,0.6)" stroke-width="1" fill="none"/>
+              <circle cx="16" cy="16" r="3" fill="rgba(168,85,247,0.8)"/>
+            </svg>
+          </div>
+          <div class="domain-row">
+            <span class="domain-label">Domain</span>
+            <span class="domain-value" id="godDomain">—</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-header">
+            <span>✦</span> Lore
+          </div>
+          <div class="lore-text" id="godLore"></div>
+          <div class="god-quote" id="godQuote" style="margin-top:12px;"></div>
+        </div>
+
+        <div>
+          <div class="section-header">
+            <span>✦</span> Abilities
+          </div>
+          <div class="abilities-grid" id="abilitiesGrid"></div>
+        </div>
+
+        <div class="power-row">
+          <span class="power-label">Power Level</span>
+          <span class="power-value" id="powerValue">—</span>
+          <div class="power-bar">
+            <div class="power-fill" id="powerFill"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="loading-overlay" id="profileLoading">
+        <div class="loading-ring"></div>
+        <div class="loading-text">CHANNELING DIVINITY...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    ✦ "We Design Gods. You Decide Their Legend." ✦
+  </div>
+
+</div>
+
+<!-- ERROR TOAST -->
+<div class="toast" id="errorToast"></div>
+
+<script>
+// ── STAR FIELD ──
+(function() {
+  const canvas = document.getElementById('starCanvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 200; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.3,
+        alpha: Math.random() * 0.7 + 0.1,
+        speed: Math.random() * 0.02 + 0.005,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function drawStars(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      const a = s.alpha * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(); });
+  resize();
+  initStars();
+  requestAnimationFrame(drawStars);
+})();
+
+// ── ABILITY ICONS ──
+const ABILITY_ICONS = ['◎','⊗','✦','◈','⟁'];
+
+// ── SHOW ERROR ──
+function showError(msg) {
+  const t = document.getElementById('errorToast');
+  t.textContent = '⚠ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ── SET STATUS ──
+function setStatus(text, msg, color) {
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('statusMsg').textContent = msg;
+  document.getElementById('statusDot').style.background = color;
+  document.getElementById('statusDot').style.boxShadow = `0 0 10px ${color}`;
+}
+
+// ── RENDER PROFILE ──
+function renderProfile(data) {
+  document.getElementById('profilePlaceholder').style.display = 'none';
+  document.getElementById('profileBody').style.display = 'flex';
+
+  document.getElementById('godName').childNodes[0].textContent = (data.nama || 'Unknown') + ' ';
+  document.getElementById('godDomain').textContent = data.domain || '—';
+  document.getElementById('godLore').textContent = data.lore || '';
+  document.getElementById('godQuote').textContent = data.quote ? `"${data.quote}"` : '';
+  document.getElementById('powerValue').textContent = data.power_level || 'TRANSCENDENT';
+
+  // Abilities
+  const grid = document.getElementById('abilitiesGrid');
+  grid.innerHTML = '';
+  (data.abilities || []).forEach((ab, i) => {
+    const card = document.createElement('div');
+    card.className = 'ability-card';
+    card.innerHTML = `
+      <div class="ability-icon" style="color:rgba(168,85,247,0.9)">${ABILITY_ICONS[i % ABILITY_ICONS.length]}</div>
+      <div class="ability-name">${ab.name || ''}</div>
+      <div class="ability-desc">${ab.desc || ''}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Power bar
+  setTimeout(() => {
+    document.getElementById('powerFill').style.width = '100%';
+  }, 300);
+}
+
+// ── RENDER IMAGE ──
+function renderImage(url) {
+  const img = document.getElementById('godImage');
+  const ph = document.getElementById('portraitPlaceholder');
+  const shimmer = document.getElementById('imgShimmer');
+  const loader = document.getElementById('portraitLoading');
+
+  loader.classList.add('show');
+  shimmer.classList.add('show');
+  ph.style.display = 'none';
+
+  img.onload = () => {
+    loader.classList.remove('show');
+    shimmer.classList.remove('show');
+    img.style.display = 'block';
+  };
+
+  img.onerror = () => {
+    loader.classList.remove('show');
+    shimmer.classList.remove('show');
+    ph.style.display = 'flex';
+    ph.querySelector('p').textContent = 'Image generation failed. Try again.';
+  };
+
+  img.src = url;
+}
+
+// ── MAIN AWAKEN ──
+async function awaken() {
+  const concept = document.getElementById('conceptInput').value.trim();
+  if (!concept) { showError('Please describe your god first!'); return; }
+
+  const btn = document.getElementById('awakenBtn');
+  btn.disabled = true;
+
+  // Reset
+  document.getElementById('powerFill').style.width = '0%';
+  document.getElementById('godImage').style.display = 'none';
+  document.getElementById('portraitPlaceholder').style.display = 'flex';
+  document.getElementById('portraitPlaceholder').querySelector('p').textContent = 'Awaiting the god\'s manifestation...';
+
+  setStatus('PROCESSING', 'Channeling divine energies...', '#f59e0b');
+  document.getElementById('profileLoading').classList.add('show');
+  document.getElementById('portraitLoading').classList.add('show');
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ concept, model: 'llama-3.3-70b-versatile' })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'API Error ' + res.status);
+    }
+
+    const data = await res.json();
+
+    document.getElementById('profileLoading').classList.remove('show');
+    renderProfile(data);
+
+    if (data.image_url) {
+      renderImage(data.image_url);
+    } else {
+      document.getElementById('portraitLoading').classList.remove('show');
+    }
+
+    setStatus('ONLINE', 'God successfully awakened!', '#4ade80');
+
+  } catch (err) {
+    document.getElementById('profileLoading').classList.remove('show');
+    document.getElementById('portraitLoading').classList.remove('show');
+    showError(err.message);
+    setStatus('ERROR', 'Divine connection failed.', '#f87171');
+  }
+
+  btn.disabled = false;
+}
+
+function showAbout() {
+  alert('Divine Architect Agent\n\nPowered by:\n• Groq AI (llama-3.3-70b) — Lore Generation\n• Pollinations.ai — Image Generation (No API Key)\n\nDeploy-ready for Vercel.\nSet GROQ_API_KEY in Vercel Environment Variables.');
+}
+</script>
+</body>
+</html>
